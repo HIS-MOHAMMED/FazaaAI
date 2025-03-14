@@ -9,6 +9,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name="post")
 public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

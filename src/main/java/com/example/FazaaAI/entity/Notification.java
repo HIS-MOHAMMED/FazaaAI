@@ -7,6 +7,7 @@ import lombok.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name= "notification")
 public class Notification {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

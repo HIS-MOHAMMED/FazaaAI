@@ -7,6 +7,7 @@ import lombok.*;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name="match")
 public class Match {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
