@@ -1,4 +1,4 @@
-package com.example.FazaaAI;
+package com.example.FazaaAI.AIService;
 
 import com.example.FazaaAI.service.AIService;
 import org.springframework.beans.factory.annotation.Autowired;
