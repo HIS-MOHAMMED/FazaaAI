@@ -8,7 +8,7 @@
 		<version>3.4.3</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.tech4peace</groupId>
+	<groupId>com.example</groupId>
 	<artifactId>FazaaAI</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>FazaaAI</name>
