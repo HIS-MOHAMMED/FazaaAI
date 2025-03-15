@@ -1,46 +1,37 @@
 package com.example.FazaaAI.entity;
 
-
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.util.List;
 
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name="post")
+@Table(name = "post")
 public class Post {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long postId;
+    private Long id;
 
-    private String type; // "request" or "offer"
-    private String status; // "open", "matched", "closed"
-    private String urgency; // "low", "medium", "high"
-    private String contactInfo;
+    @Column(columnDefinition = "TEXT")
+    private String userDescription;  // What the user writes initially
+
+    @Column(columnDefinition = "TEXT")
+    private String enhancedDescription; // AI-enhanced version for the post feed
+
+    private String status;  // Example: "available", "done"
+    private String urgency; // Example: "urgent", "normal"
+    private String type;    // "request" or "offer"
+
     private String city;
-    private String country;
-    private String street;
-
-    private String title;        // AI-generated
-    @Column(length = 2000)
-    private String description;  // AI-generated
+    private String phoneNumber;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
-
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
-    private List<Item> items;
-
-    public List<Item> getItems() {
-        return items;
-    }
-
-    public void setItems(List<Item> items) {
-        this.items = items;
-    }
 
     public User getUser() {
         return user;
@@ -50,60 +41,31 @@ public class Post {
         this.user = user;
     }
 
-    public String getDescription() {
-        return description;
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Item> items;
+
+    public Long getId() {
+        return id;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    public String getTitle() {
-        return title;
+    public String getUserDescription() {
+        return userDescription;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setUserDescription(String userDescription) {
+        this.userDescription = userDescription;
     }
 
-    public String getStreet() {
-        return street;
+    public String getEnhancedDescription() {
+        return enhancedDescription;
     }
 
-    public void setStreet(String street) {
-        this.street = street;
-    }
-
-    public String getCountry() {
-        return country;
-    }
-
-    public void setCountry(String country) {
-        this.country = country;
-    }
-
-    public String getCity() {
-        return city;
-    }
-
-    public void setCity(String city) {
-        this.city = city;
-    }
-
-    public String getContactInfo() {
-        return contactInfo;
-    }
-
-    public void setContactInfo(String contactInfo) {
-        this.contactInfo = contactInfo;
-    }
-
-    public String getUrgency() {
-        return urgency;
-    }
-
-    public void setUrgency(String urgency) {
-        this.urgency = urgency;
+    public void setEnhancedDescription(String enhancedDescription) {
+        this.enhancedDescription = enhancedDescription;
     }
 
     public String getStatus() {
@@ -114,6 +76,14 @@ public class Post {
         this.status = status;
     }
 
+    public String getUrgency() {
+        return urgency;
+    }
+
+    public void setUrgency(String urgency) {
+        this.urgency = urgency;
+    }
+
     public String getType() {
         return type;
     }
@@ -122,11 +92,27 @@ public class Post {
         this.type = type;
     }
 
-    public Long getPostId() {
-        return postId;
+    public String getCity() {
+        return city;
     }
 
-    public void setPostId(Long postId) {
-        this.postId = postId;
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public String getPhoneNumber() {
+        return phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
+    }
+
+    public List<Item> getItems() {
+        return items;
+    }
+
+    public void setItems(List<Item> items) {
+        this.items = items;
     }
 }
