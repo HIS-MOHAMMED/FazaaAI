@@ -10,44 +10,54 @@ import org.springframework.web.client.RestTemplate;
 @Service
 public class AIService {
 
-    @Value("${llama.api.key}")
-    private String llamaApiKey;
+    private final String apiKey;
+    private final String endpoint;
+    private final String modelName;
 
-    private final String llamaApiUrl = "https://api.llama-api.com/chat/completions";
-    private final RestTemplate restTemplate = new RestTemplate();
+    public AIService(@Value("${azure.openai.key}") String apiKey,
+                     @Value("${azure.openai.endpoint}") String endpoint,
+                     @Value("${azure.openai.model}") String modelName) {
+        this.apiKey = apiKey;
+        this.endpoint = endpoint;
+        this.modelName = modelName;
+    }
 
     public String generateContent(String prompt) {
-        
+        String requestUrl = String.format("%s/openai/deployments/%s/chat/completions?api-version=2024-02-01",
+                endpoint, modelName);
+
+        RestTemplate restTemplate = new RestTemplate();
+
         HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.setBearerAuth(llamaApiKey);
+        headers.set("Content-Type", "application/json");
+        headers.set("api-key", apiKey);
+        headers.set("x-ms-model-mesh-model-name", modelName); // REQUIRED clearly for your endpoint
 
-        JSONObject requestJson = new JSONObject()
-            .put("model", "llama3.1-70b") // Clearly choose your preferred model
-            .put("messages", new JSONArray()
-                .put(new JSONObject()
-                    .put("role", "user")
-                    .put("content", prompt)
-                )
-            )
-            .put("temperature", 0.1)
-            .put("max_tokens", 500)
-            .put("top_p", 1.0)
-            .put("frequency_penalty", 1.0);
+        JSONObject requestBody = new JSONObject();
+        JSONArray messagesArray = new JSONArray();
+        JSONObject userMessage = new JSONObject();
 
-        HttpEntity<String> entity = new HttpEntity<>(requestJson.toString(), headers);
+        userMessage.put("role", "user");
+        userMessage.put("content", prompt);
+        messagesArray.put(userMessage);
+
+        requestBody.put("messages", messagesArray);
+        requestBody.put("max_tokens", 500);
+        requestBody.put("temperature", 0.7);
+
+        HttpEntity<String> entity = new HttpEntity<>(requestBody.toString(), headers);
+        RestTemplate template = new RestTemplate();
 
         try {
-            ResponseEntity<String> response = restTemplate.exchange(
-                    "https://api.llama-api.com/chat/completions",
+            ResponseEntity<String> response = template.exchange(
+                    endpoint + "/openai/deployments/" + modelName + "/chat/completions?api-version=2024-02-01",
                     HttpMethod.POST,
                     entity,
-                    String.class
-            );
+                    String.class);
 
-            JSONObject responseBody = new JSONObject(response.getBody());
-
-            return responseBody.getJSONArray("choices")
+            JSONObject responseJson = new JSONObject(response.getBody());
+            return responseJson
+                    .getJSONArray("choices")
                     .getJSONObject(0)
                     .getJSONObject("message")
                     .getString("content");
