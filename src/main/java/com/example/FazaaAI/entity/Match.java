@@ -24,4 +24,5 @@ public class Match {
     @ManyToOne
     @JoinColumn(name = "offered_post_id")
     private Post offeredPost;
+
 }
