@@ -3,9 +3,12 @@ package com.example.FazaaAI.service;
 import com.example.FazaaAI.entity.Item;
 import com.example.FazaaAI.entity.Post;
 import com.example.FazaaAI.repository.PostRepository;
+import jakarta.persistence.LockModeType;
+import jakarta.transaction.Transactional;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -23,9 +26,13 @@ public class PostService {
     @Autowired
     private PostRepository postRepository;
 
+    @Autowired
+    private MatchRequestService matchRequestService; // new service (we’ll add this later)
+
+    @Transactional
     public Post createPost(Post post) {
 
-        // AI PROMPT
+        // 1. Use AI to enhance the post
         String prompt = """
         You are an AI assisting in humanitarian aid posts. Analyze this user's post:
         
@@ -46,9 +53,7 @@ public class PostService {
 
         String aiResponse = aiService.generateContent(prompt);
 
-        System.out.println("✅ AI RAW RESPONSE:\n" + aiResponse);
-
-        // Clean AI Response from markdown artifacts
+        // Clean the AI response
         aiResponse = aiResponse.replace("```json", "").replace("```", "").trim();
 
         JSONObject json = new JSONObject(aiResponse);
@@ -82,81 +87,70 @@ public class PostService {
 
         post.setItems(extractedItems);
 
-        return postRepository.save(post);
+        // 2. Save the post
+        Post savedPost = postRepository.saveAndFlush(post);
+
+        // 3. Trigger matching logic
+        checkForMatches(savedPost);
+
+        return savedPost;
     }
 
-    public void matchRequestsWithOffers() {
-        List<Post> requests = postRepository.findByTypeAndStatus("request", "available");
-        List<Post> offers = postRepository.findByTypeAndStatus("offer", "available");
+    private void checkForMatches(Post post) {
 
-        for (Post request : requests) {
-            for (Item requestItem : request.getItems()) {
+        String oppositeType = post.getType().equalsIgnoreCase("request") ? "offer" : "request";
 
-                int neededQuantity = requestItem.getQuantityRequested();
-                if (neededQuantity <= 0) continue;
+        List<Post> candidates = postRepository.findByCityAndTypeAndStatus(
+                post.getCity(),
+                oppositeType,
+                "available"
+        );
 
-                for (Post offer : offers) {
-                    if (!offer.getCity().equalsIgnoreCase(request.getCity())) continue;
+        for (Post candidate : candidates) {
 
-                    for (Item offerItem : offer.getItems()) {
+            for (Item item : post.getItems()) {
+                for (Item candidateItem : candidate.getItems()) {
 
-                        if (!offerItem.getItemName().equalsIgnoreCase(requestItem.getItemName())) continue;
+                    if (!item.getItemName().equalsIgnoreCase(candidateItem.getItemName())) continue;
 
-                        int availableQuantity = offerItem.getQuantityAvailable();
-                        if (availableQuantity <= 0) continue;
+                    int postQty = post.getType().equalsIgnoreCase("request") ?
+                            item.getQuantityRequested() : item.getQuantityAvailable();
 
-                        int quantityToMatch = Math.min(neededQuantity, availableQuantity);
+                    int candidateQty = candidate.getType().equalsIgnoreCase("request") ?
+                            candidateItem.getQuantityRequested() : candidateItem.getQuantityAvailable();
 
-                        offerItem.setQuantityAvailable(availableQuantity - quantityToMatch);
-                        requestItem.setQuantityRequested(neededQuantity - quantityToMatch);
+                    if (postQty <= 0 || candidateQty <= 0) continue;
 
-                        if (offerItem.getQuantityAvailable() == 0) {
-                            offer.setStatus("done");
-                        }
+                    // Found a potential match
+                    // ✅ Create MatchRequest (we’ll implement this later)
+                    matchRequestService.createMatchRequest(post, candidate, item.getItemName(), Math.min(postQty, candidateQty));
 
-                        if (requestItem.getQuantityRequested() == 0) {
-                            request.setStatus("done");
-                        }
+                    // ✅ Send notification to both users
+                    String message = String.format("You have a potential match for item '%s'. Please review and accept/reject.", item.getItemName());
 
-                        postRepository.save(offer);
-                        postRepository.save(request);
-
-                        notifyUsers(request, offer, quantityToMatch);
-
-                        if (requestItem.getQuantityRequested() == 0) break;
+                    if (post.getUser() != null) {
+                        notificationService.createNotification(post.getUser(), message, "match");
+                    }
+                    if (candidate.getUser() != null) {
+                        notificationService.createNotification(candidate.getUser(), message, "match");
                     }
 
-                    if (requestItem.getQuantityRequested() == 0) break;
+                    break; // Move to next item/post if one match found
                 }
             }
         }
     }
 
-    private void notifyUsers(Post request, Post offer, int matchedQuantity) {
-        String message = String.format("Your request '%s' matched with an offer '%s'. Matched quantity: %d.",
-                request.getEnhancedDescription(),
-                offer.getEnhancedDescription(),
-                matchedQuantity);
-
-        // Notify request post creator
-        if (request.getUser() != null) {
-            notificationService.createNotification(request.getUser(), message, "match");
-        }
-
-        // Notify offer post creator
-        if (offer.getUser() != null) {
-            notificationService.createNotification(offer.getUser(), message, "match");
-        }
+    @Transactional
+    public List<Post> getAllPosts() {
+        return postRepository.findAll();
     }
 
+    @Transactional
     public Post markPostAsDone(Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found with ID: " + postId));
         post.setStatus("done");
         return postRepository.save(post);
-    }
-
-    public List<Post> getAllPosts() {
-        return postRepository.findAll();
     }
 }

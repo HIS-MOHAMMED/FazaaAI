@@ -16,7 +16,10 @@ public class Post {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Version
+    private Long version;
     @Column(columnDefinition = "TEXT")
+
     private String userDescription;  // What the user writes initially
 
     @Column(columnDefinition = "TEXT")

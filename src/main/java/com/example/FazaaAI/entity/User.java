@@ -3,6 +3,8 @@ package com.example.FazaaAI.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Entity
 @Data
 @NoArgsConstructor
@@ -31,6 +33,16 @@ public class User {
     private String firstName;
 
     private String lastName;
+
+
+
+    // ✅ Bidirectional Links
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Post> posts;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Notification> notifications;
+
 
     public String getLastName() {
         return lastName;
@@ -95,6 +107,7 @@ public class User {
     public void setId(Long id) {
         this.id = id;
     }
+
 
 
 }

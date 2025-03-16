@@ -19,18 +19,22 @@ public class Crisis {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String userDescription;   // What the user wrote (raw input)
 
-    private String crisisType;        // Extracted from AI
+    private String Type;        // Extracted from AI
 
     @Column(columnDefinition = "TEXT")
     private String enhancedDescription; // AI-enhanced description for crisis feed
 
     private String city;              // Location provided by user
 
-
-    private boolean resolved = false; // Status of crisis
+    // Status of crisis
 
     @Column(columnDefinition = "TEXT") // Store full survival guide text directly in Crisis
     private String survivalGuide;     // AI-generated survival guide text
+
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
     public Long getId() {
         return id;
@@ -46,14 +50,6 @@ public class Crisis {
 
     public void setUserDescription(String userDescription) {
         this.userDescription = userDescription;
-    }
-
-    public String getCrisisType() {
-        return crisisType;
-    }
-
-    public void setCrisisType(String crisisType) {
-        this.crisisType = crisisType;
     }
 
     public String getEnhancedDescription() {
@@ -72,13 +68,7 @@ public class Crisis {
         this.city = city;
     }
 
-    public boolean isResolved() {
-        return resolved;
-    }
 
-    public void setResolved(boolean resolved) {
-        this.resolved = resolved;
-    }
 
     public String getSurvivalGuide() {
         return survivalGuide;
@@ -86,5 +76,21 @@ public class Crisis {
 
     public void setSurvivalGuide(String survivalGuide) {
         this.survivalGuide = survivalGuide;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    public String getType() {
+        return Type;
+    }
+
+    public void setType(String type) {
+        Type = type;
     }
 }

@@ -6,71 +6,67 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class CrisisService {
 
     @Autowired
-    private AIService aiService;
+    private CrisisRepository crisisRepository;
 
     @Autowired
-    private CrisisRepository crisisRepository;
-    // Process user input and populate crisis data including survival guide
-    public Crisis processCrisisReport(Crisis crisis) {
+    private AIService aiService;
+
+    // ✅ Create crisis with AI classification and guide
+    public Crisis createCrisis(Crisis crisis) {
+
+        // AI prompt to classify and generate survival guide
         String prompt = """
-You are a crisis management AI. Respond only in raw JSON (no markdown, no explanations, no pre-text). A user submitted this description:
-
-"%s"
-
-Write a short, clear enhanced description suitable for a public crisis alert feed.
-Identify the type of crisis (one of: Earthquake, Flood, War, etc.).
-Generate a detailed step-by-step survival guide for people affected.
-
-⚠️ Respond ONLY with raw JSON in this format:
-
-{
-  "enhancedDescription": "string",
-  "crisisType": "string",
-  "survivalGuide": "string"
-}
-""".formatted(crisis.getUserDescription());
-
+        You are an AI assistant helping classify crisis reports and generate survival guides.
+        
+        Analyze the following crisis report:
+        
+        "%s"
+        
+        Respond ONLY with raw JSON:
+        
+        {
+          "type": "Flood",
+          "enhancedDescription": "A massive flood has submerged parts of the city.",
+          "survivalGuide": "1. Move to higher ground immediately. 2. Avoid floodwaters. 3. Stay informed via radio..."
+        }
+        """.formatted(crisis.getUserDescription());
 
         String aiResponse = aiService.generateContent(prompt);
 
+        // Clean response if needed
+        aiResponse = aiResponse.replace("```json", "").replace("```", "").trim();
+
         JSONObject json = new JSONObject(aiResponse);
 
+        crisis.setType(json.getString("type"));
         crisis.setEnhancedDescription(json.getString("enhancedDescription"));
-        crisis.setCrisisType(json.getString("crisisType"));
         crisis.setSurvivalGuide(json.getString("survivalGuide"));
 
-        // Simulate DB save
-        Crisis savedCrisis = crisisRepository.save(crisis);
-        System.out.println("✅ Crisis processed and ready to save: " + crisis);
 
-        notifyAreaUsers(crisis);
 
-        return crisis;
+        return crisisRepository.save(crisis);
     }
 
-    public void notifyAreaUsers(Crisis crisis) {
-        System.out.println("🔔 New Crisis Alert in " + crisis.getCity() + "!");
-        System.out.println("📝 Enhanced Description: " + crisis.getEnhancedDescription());
-        System.out.println("📜 Survival Guide: " + crisis.getSurvivalGuide());
+    // ✅ Get all crisis posts
+    public List<Crisis> getAllCrisis() {
+        return crisisRepository.findAll();
     }
 
-    public Crisis resolveCrisis(Long crisisId) {
-        // ✅ Fetch Crisis from Database
-        Crisis crisis = crisisRepository.findById(crisisId)
-                .orElseThrow(() -> new RuntimeException("Crisis not found with ID: " + crisisId));
+    // ✅ Get specific crisis post by ID
+    public Crisis getCrisisById(Long id) {
+        return crisisRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Crisis not found with ID: " + id));
+    }
 
-        // ✅ Mark as resolved
-        crisis.setResolved(true);
-
-        // ✅ Save the updated crisis in the database
-        Crisis updatedCrisis = crisisRepository.save(crisis);
-
-        System.out.println("✅ Crisis marked as resolved and saved: " + updatedCrisis);
-
-        return updatedCrisis;
+    // ✅ Update crisis status (optional)
+    public Crisis updateCrisisStatus(Long id, String status) {
+        Crisis crisis = getCrisisById(id);
+        return crisisRepository.save(crisis);
     }
 }
