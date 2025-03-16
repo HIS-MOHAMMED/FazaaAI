@@ -45,4 +45,21 @@ public class UserController {
         User user = userService.getUserById(userId);
         return ResponseEntity.ok(user);
     }
+
+    // ✅ Get current authenticated user (/me)
+    @GetMapping("/me")
+    public ResponseEntity<User> getCurrentUser(@RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(401).body(null);
+        }
+
+        String token = authHeader.substring(7); // Remove "Bearer " prefix
+        if (!jwtUtil.validateToken(token)) {
+            return ResponseEntity.status(401).body(null);
+        }
+
+        Long userId = jwtUtil.getUserIdFromToken(token);
+        User user = userService.getUserById(userId);
+        return ResponseEntity.ok(user);
+    }
 }
