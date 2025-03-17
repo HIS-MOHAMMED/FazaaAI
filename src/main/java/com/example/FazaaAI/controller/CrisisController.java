@@ -51,11 +51,4 @@ public class CrisisController {
         Crisis crisis = crisisService.getCrisisById(id);
         return ResponseEntity.ok(crisis.getSurvivalGuide());
     }
-
-//    // ✅ Optional: Update crisis status manually (if you need it)
-//    @PutMapping("/{id}/status")
-//    public ResponseEntity<Crisis> updateStatus(@PathVariable Long id, @RequestParam String status) {
-//        Crisis updatedCrisis = crisisService.updateCrisisStatus(id, status);
-//        return ResponseEntity.ok(updatedCrisis);
-//    }
 }

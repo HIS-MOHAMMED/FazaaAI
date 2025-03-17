@@ -2,6 +2,7 @@ package com.example.FazaaAI.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonBackReference; // Changed to Back
 
 @Entity
 @Data
@@ -16,13 +17,16 @@ public class Notification {
 
     private String message;
 
-    private String type;  // optional, e.g. "match"
+    private String type;
 
     private boolean isRead = false;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
+    @JsonBackReference("user-notifications") // Back-reference to the user
     private User user;
+
+    // Getters and setters remain unchanged
 
     public Long getId() {
         return id;

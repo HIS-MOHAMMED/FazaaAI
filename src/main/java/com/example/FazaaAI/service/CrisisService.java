@@ -1,6 +1,7 @@
 package com.example.FazaaAI.service;
 
 import com.example.FazaaAI.entity.Crisis;
+import com.example.FazaaAI.entity.User;
 import com.example.FazaaAI.repository.CrisisRepository;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,9 +18,14 @@ public class CrisisService {
     @Autowired
     private AIService aiService;
 
-    // ✅ Create crisis with AI classification and guide
-    public Crisis createCrisis(Crisis crisis) {
+    @Autowired
+    private UserService userService;
 
+    @Autowired
+    private NotificationService notificationService;
+
+    // ✅ Create crisis with AI classification, guide, and notifications
+    public Crisis createCrisis(Crisis crisis) {
         // AI prompt to classify and generate survival guide
         String prompt = """
         You are an AI assistant helping classify crisis reports and generate survival guides.
@@ -48,9 +54,18 @@ public class CrisisService {
         crisis.setEnhancedDescription(json.getString("enhancedDescription"));
         crisis.setSurvivalGuide(json.getString("survivalGuide"));
 
+        // Save the crisis
+        Crisis savedCrisis = crisisRepository.save(crisis);
 
+        // Notify all users in the same city (excluding the creator)
+        List<User> usersInCity = userService.findUsersByCity(crisis.getCity());
+        usersInCity.remove(crisis.getUser()); // Don’t notify the creator
+        if (!usersInCity.isEmpty()) {
+            String message = "A new crisis has been reported in " + crisis.getCity() + ": " + crisis.getEnhancedDescription();
+            notificationService.notifyUsers(usersInCity, message, "crisis");
+        }
 
-        return crisisRepository.save(crisis);
+        return savedCrisis;
     }
 
     // ✅ Get all crisis posts

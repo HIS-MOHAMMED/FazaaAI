@@ -6,6 +6,8 @@ import com.example.FazaaAI.repository.NotificationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class NotificationService {
 
@@ -22,5 +24,12 @@ public class NotificationService {
         notificationRepository.save(notification);
 
         System.out.println("✅ Notification saved for user " + user.getId() + ": " + message);
+    }
+
+    // New method to notify multiple users
+    public void notifyUsers(List<User> users, String message, String type) {
+        for (User user : users) {
+            createNotification(user, message, type);
+        }
     }
 }

@@ -2,6 +2,7 @@ package com.example.FazaaAI.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
 @Data
@@ -14,14 +15,17 @@ public class Item {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String itemName; // e.g., "Water Bottles"
+    private String itemName;
 
-    private int quantityRequested;  // only used for request posts
-    private int quantityAvailable;  // only used for offer posts
+    private int quantityRequested;
+    private int quantityAvailable;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id")
+    @JsonBackReference("post-items") // Back-reference to the post
     private Post post;
+
+    // Getters and setters remain unchanged
 
     public Long getId() {
         return id;

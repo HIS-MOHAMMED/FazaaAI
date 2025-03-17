@@ -2,6 +2,8 @@ package com.example.FazaaAI.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import com.fasterxml.jackson.annotation.JsonBackReference; // Changed to Back
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import java.util.List;
 
@@ -18,34 +20,30 @@ public class Post {
 
     @Version
     private Long version;
-    @Column(columnDefinition = "TEXT")
-
-    private String userDescription;  // What the user writes initially
 
     @Column(columnDefinition = "TEXT")
-    private String enhancedDescription; // AI-enhanced version for the post feed
+    private String userDescription;
 
-    private String status;  // Example: "available", "done"
-    private String urgency; // Example: "urgent", "normal"
-    private String type;    // "request" or "offer"
+    @Column(columnDefinition = "TEXT")
+    private String enhancedDescription;
+
+    private String status;
+    private String urgency;
+    private String type;
 
     private String city;
     private String phoneNumber;
 
     @ManyToOne
     @JoinColumn(name = "user_id")
+    @JsonBackReference("user-posts") // Back-reference to the user
     private User user;
 
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonManagedReference("post-items") // Manage the items collection
     private List<Item> items;
+
+    // Getters and setters remain unchanged
 
     public Long getId() {
         return id;
@@ -53,6 +51,14 @@ public class Post {
 
     public void setId(Long id) {
         this.id = id;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
     }
 
     public String getUserDescription() {
@@ -109,6 +115,14 @@ public class Post {
 
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
+    }
+
+    public User getUser() {
+        return user;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
     }
 
     public List<Item> getItems() {

@@ -5,8 +5,13 @@ import com.example.FazaaAI.service.UserService;
 import com.example.FazaaAI.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -19,41 +24,40 @@ public class UserController {
     @Autowired
     private JwtUtil jwtUtil;
 
-    // ✅ Register a user
     @PostMapping("/register")
-    public ResponseEntity<User> register(@RequestBody User user) {
-        User registeredUser = userService.registerUser(user);
-        return ResponseEntity.ok(registeredUser);
+    public ResponseEntity<?> register(@Valid @RequestBody User user) {
+        try {
+            User registeredUser = userService.registerUser(user);
+            return ResponseEntity.ok(registeredUser);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
-    // ✅ Login with JWT
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody User loginRequest) {
         Optional<User> user = userService.loginUser(loginRequest.getEmail(), loginRequest.getPassword());
-
         if (user.isPresent()) {
             String token = jwtUtil.generateToken(user.get().getId(), user.get().getEmail());
-            return ResponseEntity.ok(token); // Return JWT token
+            return ResponseEntity.ok(token);
         } else {
             return ResponseEntity.status(401).body("Invalid email or password.");
         }
     }
 
-    // ✅ Get user by ID
     @GetMapping("/{userId}")
     public ResponseEntity<User> getUser(@PathVariable Long userId) {
         User user = userService.getUserById(userId);
         return ResponseEntity.ok(user);
     }
 
-    // ✅ Get current authenticated user (/me)
     @GetMapping("/me")
     public ResponseEntity<User> getCurrentUser(@RequestHeader("Authorization") String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             return ResponseEntity.status(401).body(null);
         }
 
-        String token = authHeader.substring(7); // Remove "Bearer " prefix
+        String token = authHeader.substring(7);
         if (!jwtUtil.validateToken(token)) {
             return ResponseEntity.status(401).body(null);
         }
@@ -61,5 +65,14 @@ public class UserController {
         Long userId = jwtUtil.getUserIdFromToken(token);
         User user = userService.getUserById(userId);
         return ResponseEntity.ok(user);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        for (FieldError error : ex.getBindingResult().getFieldErrors()) {
+            errors.put(error.getField(), error.getDefaultMessage());
+        }
+        return ResponseEntity.badRequest().body(errors);
     }
 }
