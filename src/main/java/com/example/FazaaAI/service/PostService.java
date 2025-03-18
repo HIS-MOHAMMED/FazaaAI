@@ -1,6 +1,7 @@
 package com.example.FazaaAI.service;
 
 import com.example.FazaaAI.entity.Item;
+import com.example.FazaaAI.entity.MatchRequest;
 import com.example.FazaaAI.entity.Post;
 import com.example.FazaaAI.repository.PostRepository;
 import jakarta.persistence.LockModeType;
@@ -97,7 +98,6 @@ public class PostService {
     }
 
     private void checkForMatches(Post post) {
-
         String oppositeType = post.getType().equalsIgnoreCase("request") ? "offer" : "request";
 
         List<Post> candidates = postRepository.findByCityAndTypeAndStatus(
@@ -121,18 +121,17 @@ public class PostService {
 
                     if (postQty <= 0 || candidateQty <= 0) continue;
 
-                    // Found a potential match
-                    // ✅ Create MatchRequest (we’ll implement this later)
-                    matchRequestService.createMatchRequest(post, candidate, item.getItemName(), Math.min(postQty, candidateQty));
+                    // ✅ Create MatchRequest
+                    MatchRequest matchRequest = matchRequestService.createMatchRequest(post, candidate, item.getItemName(), Math.min(postQty, candidateQty));
 
-                    // ✅ Send notification to both users
+                    // ✅ Notify both users WITH the MatchRequest
                     String message = String.format("You have a potential match for item '%s'. Please review and accept/reject.", item.getItemName());
 
                     if (post.getUser() != null) {
-                        notificationService.createNotification(post.getUser(), message, "match");
+                        notificationService.createNotification(post.getUser(), message, "match", matchRequest);
                     }
                     if (candidate.getUser() != null) {
-                        notificationService.createNotification(candidate.getUser(), message, "match");
+                        notificationService.createNotification(candidate.getUser(), message, "match", matchRequest);
                     }
 
                     break; // Move to next item/post if one match found

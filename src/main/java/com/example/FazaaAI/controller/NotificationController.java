@@ -1,5 +1,6 @@
 package com.example.FazaaAI.controller;
 
+import com.example.FazaaAI.dto.NotificationDTO;
 import com.example.FazaaAI.entity.Notification;
 import com.example.FazaaAI.repository.NotificationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,9 +17,21 @@ public class NotificationController {
     private NotificationRepository notificationRepository;
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Notification>> getUserNotifications(@PathVariable Long userId) {
+    public ResponseEntity<List<NotificationDTO>> getUserNotifications(@PathVariable Long userId) {
         List<Notification> notifications = notificationRepository.findByUserId(userId);
-        return ResponseEntity.ok(notifications);
+
+        List<NotificationDTO> response = notifications.stream().map(n -> {
+            Long matchRequestId = n.getMatchRequest() != null ? n.getMatchRequest().getId() : null;
+            return new NotificationDTO(
+                    n.getId(),
+                    n.getMessage(),
+                    n.getType(),
+                    n.isRead(),
+                    matchRequestId
+            );
+        }).toList();
+
+        return ResponseEntity.ok(response);
     }
 
     @PutMapping("/read/{notificationId}")

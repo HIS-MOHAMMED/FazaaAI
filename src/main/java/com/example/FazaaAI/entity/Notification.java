@@ -26,6 +26,9 @@ public class Notification {
     @JsonBackReference("user-notifications") // Back-reference to the user
     private User user;
 
+    @ManyToOne
+    @JoinColumn(name = "match_request_id")
+    private MatchRequest matchRequest;
     // Getters and setters remain unchanged
 
     public Long getId() {
@@ -66,5 +69,13 @@ public class Notification {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public MatchRequest getMatchRequest() {
+        return matchRequest;
+    }
+
+    public void setMatchRequest(MatchRequest matchRequest) {
+        this.matchRequest = matchRequest;
     }
 }
