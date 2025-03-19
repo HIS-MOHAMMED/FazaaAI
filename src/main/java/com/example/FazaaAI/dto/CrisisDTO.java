@@ -7,8 +7,21 @@ import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
+//@AllArgsConstructor
 public class CrisisDTO {
+    public CrisisDTO(String username, Long userId, LocalDateTime endDate, LocalDateTime startDate, int safetyCheckDurationDays, String survivalGuide, String city, String type, String enhancedDescription, String userDescription, Long id) {
+        this.username = username;
+        this.userId = userId;
+        this.endDate = endDate;
+        this.startDate = startDate;
+        this.safetyCheckDurationDays = safetyCheckDurationDays;
+        this.survivalGuide = survivalGuide;
+        this.city = city;
+        this.type = type;
+        this.enhancedDescription = enhancedDescription;
+        this.userDescription = userDescription;
+        this.id = id;
+    }
 
     private Long id;
     private String userDescription;

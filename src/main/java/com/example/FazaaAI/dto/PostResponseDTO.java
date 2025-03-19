@@ -3,8 +3,8 @@ package com.example.FazaaAI.dto;
 import lombok.*;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
+//@AllArgsConstructor
+//@NoArgsConstructor
 public class PostResponseDTO {
 
     private Long id;
@@ -19,18 +19,19 @@ public class PostResponseDTO {
     private Long userId;      // This is what mobile needs
     private String username;  // Optional, but useful for display
 
-    public PostResponseDTO(String username, Long userId, String phoneNumber, String city, String type, String urgency, String status, String enhancedDescription, String userDescription, Long id) {
-        this.username = username;
-        this.userId = userId;
-        this.phoneNumber = phoneNumber;
-        this.city = city;
-        this.type = type;
-        this.urgency = urgency;
-        this.status = status;
-        this.enhancedDescription = enhancedDescription;
-        this.userDescription = userDescription;
+    public PostResponseDTO(Long id, String userDescription, String enhancedDescription, String status, String urgency, String type, String city, String phoneNumber, Long userId, String username) {
         this.id = id;
+        this.userDescription = userDescription;
+        this.enhancedDescription = enhancedDescription;
+        this.status = status;
+        this.urgency = urgency;
+        this.type = type;
+        this.city = city;
+        this.phoneNumber = phoneNumber;
+        this.userId = userId;
+        this.username = username;
     }
+
     public PostResponseDTO( ) {
 
     }

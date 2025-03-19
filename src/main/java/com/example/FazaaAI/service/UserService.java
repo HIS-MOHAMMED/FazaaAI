@@ -63,11 +63,13 @@ public class UserService {
 
         userRepository.save(user);
     }
-    public List<User> getTopHelpers(int limit) {
+    public List<User> getTopHelpers() {
+        int limit = 10;  // Top 10 helpers
         return userRepository.findAll(
                 PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "reputationPoints"))
         ).getContent();
     }
+
 
 }
 

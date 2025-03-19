@@ -77,10 +77,11 @@ public class UserController {
         return ResponseEntity.badRequest().body(errors);
     }
     @GetMapping("/leaderboard")
-    public ResponseEntity<List<User>> getLeaderboard(@RequestParam(defaultValue = "1") int limit) {
-        List<User> topHelpers = userService.getTopHelpers(limit);
+    public ResponseEntity<List<User>> getLeaderboard() {
+        List<User> topHelpers = userService.getTopHelpers();
         return ResponseEntity.ok(topHelpers);
     }
+
     @GetMapping("/profile/{userId}")
     public ResponseEntity<Map<String, Object>> getUserProfile(@PathVariable Long userId) {
         User user = userService.getUserById(userId);

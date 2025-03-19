@@ -100,8 +100,19 @@ public class MatchRequestService {
             String message = String.format("Match for item '%s' completed! Quantity matched: %d",
                     match.getItemName(), quantityMatched);
 
-            notificationService.createNotification(match.getRequestPost().getUser(), message, "match-completed");
-            notificationService.createNotification(offerUser, message, "match-completed");
+            notificationService.createNotification(
+                    match.getRequestPost().getUser(),
+                    message,
+                    "match-completed",
+                    match // ✅ Pass the match request
+            );
+
+            notificationService.createNotification(
+                    offerUser,
+                    message,
+                    "match-completed",
+                    match // ✅ Pass the match request
+            );
         }
 
         // 9. Save the updated match request and return it
@@ -125,11 +136,20 @@ public class MatchRequestService {
         // Notify the other user
         String rejectMessage = "Your match for item '" + match.getItemName() + "' has been rejected.";
         if (match.getRequestPost().getUser().getId().equals(userId)) {
-            notificationService.createNotification(match.getOfferPost().getUser(), rejectMessage, "reject");
+            notificationService.createNotification(
+                    match.getOfferPost().getUser(),
+                    rejectMessage,
+                    "reject",
+                    match // ✅ Include matchRequest
+            );
         } else {
-            notificationService.createNotification(match.getRequestPost().getUser(), rejectMessage, "reject");
+            notificationService.createNotification(
+                    match.getRequestPost().getUser(),
+                    rejectMessage,
+                    "reject",
+                    match // ✅ Include matchRequest
+            );
         }
-
         return matchRequestRepository.save(match);
     }
 

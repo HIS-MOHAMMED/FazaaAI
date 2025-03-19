@@ -3,7 +3,7 @@ package com.example.FazaaAI.dto;
 import lombok.*;
 
 @Data
-@AllArgsConstructor
+//@AllArgsConstructor
 @NoArgsConstructor
 public class NotificationDTO {
     private Long id;
