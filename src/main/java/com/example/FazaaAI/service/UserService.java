@@ -3,6 +3,8 @@ package com.example.FazaaAI.service;
 import com.example.FazaaAI.entity.User;
 import com.example.FazaaAI.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -41,5 +43,31 @@ public class UserService {
     public List<User> findUsersByCity(String city) {
         return userRepository.findByAddressContainingIgnoreCase(city);
     }
+
+    public void updateUserReputation(User user, int pointsEarned) {
+        int updatedPoints = user.getReputationPoints() + pointsEarned;
+        user.setReputationPoints(updatedPoints);
+
+        // Determine rank based on points
+        if (updatedPoints >= 1000) {
+            user.setRank("Diamond");
+        } else if (updatedPoints >= 500) {
+            user.setRank("Platinum");
+        } else if (updatedPoints >= 200) {
+            user.setRank("Gold");
+        } else if (updatedPoints >= 50) {
+            user.setRank("Silver");
+        } else {
+            user.setRank("Bronze");
+        }
+
+        userRepository.save(user);
+    }
+    public List<User> getTopHelpers(int limit) {
+        return userRepository.findAll(
+                PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "reputationPoints"))
+        ).getContent();
+    }
+
 }
 

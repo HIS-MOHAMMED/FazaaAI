@@ -40,6 +40,9 @@ public class User {
 
     private String lastName;
 
+    private int reputationPoints = 0;
+
+    private String rank = "Bronze";
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference("user-posts") // Manage the posts collection
     private List<Post> posts;
@@ -129,4 +132,9 @@ public class User {
     public void setId(Long id) {
         this.id = id;
     }
+    public int getReputationPoints() { return reputationPoints; }
+    public void setReputationPoints(int reputationPoints) { this.reputationPoints = reputationPoints; }
+
+    public String getRank() { return rank; }
+    public void setRank(String rank) { this.rank = rank; }
 }

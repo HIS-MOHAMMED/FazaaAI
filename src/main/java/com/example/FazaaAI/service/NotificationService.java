@@ -54,6 +54,17 @@ public class NotificationService {
 
         System.out.println("✅ Sent safety notification to user " + user.getUsername());
     }
+    public void createSurvivalGuideNotification(User user, Crisis crisis) {
+        Notification notification = new Notification();
+        notification.setUser(user);
+        notification.setCrisis(crisis);
+        notification.setMessage("Survival Guide: " + crisis.getSurvivalGuide());
+        notification.setType("survival-guide");
+        notification.setRead(false);
+
+        notificationRepository.save(notification);
+        System.out.println("✅ Sent survival guide notification to user " + user.getUsername());
+    }
 
     // Notify a list of users (general purpose)
     public void notifyUsers(List<User> users, String message, String type) {

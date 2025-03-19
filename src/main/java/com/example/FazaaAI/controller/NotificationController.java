@@ -1,5 +1,6 @@
 package com.example.FazaaAI.controller;
 
+import com.example.FazaaAI.dto.NotificationDTO;
 import com.example.FazaaAI.entity.Notification;
 import com.example.FazaaAI.repository.NotificationRepository;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,9 +18,26 @@ public class NotificationController {
     private NotificationRepository notificationRepository;
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Notification>> getUserNotifications(@PathVariable Long userId) {
+    public ResponseEntity<List<NotificationDTO>> getUserNotifications(@PathVariable Long userId) {
+
         List<Notification> notifications = notificationRepository.findByUserId(userId);
-        return ResponseEntity.ok(notifications);
+
+        List<NotificationDTO> notificationDTOs = notifications.stream().map(notification -> {
+            Long matchRequestId = (notification.getMatchRequest() != null)
+                    ? notification.getMatchRequest().getId()
+                    : null;
+
+            Long crisisId = (notification.getCrisis() != null)
+                    ? notification.getCrisis().getId()
+                    : null;
+
+            String crisisType = (notification.getCrisis() != null)
+                    ? notification.getCrisis().getType()
+                    : null;
+
+            return new NotificationDTO(notification.getId(), notification.getMessage(), notification.getType(), notification.isRead(), matchRequestId, crisisId, crisisType);}).toList();
+
+        return ResponseEntity.ok(notificationDTOs);
     }
 
     @PutMapping("/read/{notificationId}")

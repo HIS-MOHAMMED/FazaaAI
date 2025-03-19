@@ -1,5 +1,6 @@
 package com.example.FazaaAI.service;
 
+import com.example.FazaaAI.dto.CrisisDTO;
 import com.example.FazaaAI.entity.Crisis;
 import com.example.FazaaAI.entity.User;
 import com.example.FazaaAI.repository.CrisisRepository;
@@ -63,8 +64,25 @@ public class CrisisService {
         Crisis savedCrisis = crisisRepository.save(crisis);
 
         notifyUsersInCity(savedCrisis);
+        notifySurvivalGuideUsers(savedCrisis);
 
         return savedCrisis;
+    }
+
+    public CrisisDTO convertToDTO(Crisis crisis) {
+        return new CrisisDTO(
+                crisis.getId(),
+                crisis.getUserDescription(),
+                crisis.getEnhancedDescription(),
+                crisis.getType(),
+                crisis.getCity(),
+                crisis.getSurvivalGuide(),
+                crisis.getSafetyCheckDurationDays(),
+                crisis.getStartDate(),
+                crisis.getEndDate(),
+                crisis.getUser() != null ? crisis.getUser().getId() : null,
+                crisis.getUser() != null ? crisis.getUser().getUsername() : null
+        );
     }
 
     private void notifyUsersInCity(Crisis crisis) {
@@ -83,5 +101,12 @@ public class CrisisService {
     public Crisis getCrisisById(Long id) {
         return crisisRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Crisis not found with ID: " + id));
+    }
+    private void notifySurvivalGuideUsers(Crisis crisis) {
+        List<User> usersInCity = userRepository.findByAddressContainingIgnoreCase(crisis.getCity());
+
+        for (User user : usersInCity) {
+            notificationService.createSurvivalGuideNotification(user, crisis);
+        }
     }
 }

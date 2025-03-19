@@ -11,13 +11,17 @@ public class NotificationDTO {
     private String type;
     private boolean isRead;
     private Long matchRequestId; // ✅ Expose this field
+    private Long crisisId;
+    private String crisisType;
 
-    public NotificationDTO(Long id, String message, String type, boolean isRead, Long matchRequestId) {
+    public NotificationDTO(Long id, String message, String type, boolean isRead, Long matchRequestId, Long crisisId, String crisisType) {
         this.id = id;
         this.message = message;
         this.type = type;
         this.isRead = isRead;
         this.matchRequestId = matchRequestId;
+        this.crisisId = crisisId;
+        this.crisisType = crisisType;
     }
 
     public Long getId() {

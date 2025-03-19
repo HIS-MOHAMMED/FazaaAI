@@ -4,9 +4,10 @@ import com.example.FazaaAI.entity.*;
 import com.example.FazaaAI.repository.MatchRequestRepository;
 import com.example.FazaaAI.repository.PostRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
-
+import com.example.FazaaAI.entity.Notification;
 import java.util.List;
 
 @Service
@@ -20,6 +21,15 @@ public class MatchRequestService {
 
     @Autowired
     private NotificationService notificationService;
+
+    @Autowired
+    private UserService userService;
+
+
+    private MatchRequest matchRequest;
+
+
+
 
     public MatchRequest createMatchRequest(Post post1, Post post2, String itemName, int quantity) {
         MatchRequest matchRequest = new MatchRequest();
@@ -47,31 +57,57 @@ public class MatchRequestService {
     @Transactional
     public MatchRequest acceptMatch(Long matchRequestId, Long userId) {
 
+        // 1. Retrieve the match request by ID, or throw an exception if not found
         MatchRequest match = matchRequestRepository.findById(matchRequestId)
-                .orElseThrow(() -> new RuntimeException("MatchRequest not found"));
+                .orElseThrow(() -> new RuntimeException("MatchRequest not found with ID: " + matchRequestId));
 
-        if (match.getStatus().equalsIgnoreCase("rejected") || match.getStatus().equalsIgnoreCase("completed")) {
-            throw new RuntimeException("Cannot accept this match, it's already " + match.getStatus());
+        // 2. Check if the match has already been rejected or completed
+        String status = match.getStatus();
+        if ("rejected".equalsIgnoreCase(status) || "completed".equalsIgnoreCase(status)) {
+            throw new RuntimeException("Cannot accept this match, it's already " + status);
         }
 
-        if (match.getRequestPost().getUser().getId().equals(userId)) {
+        // 3. Check if the user is part of this match request
+        boolean isRequestUser = match.getRequestPost().getUser().getId().equals(userId);
+        boolean isOfferUser = match.getOfferPost().getUser().getId().equals(userId);
+
+        if (!isRequestUser && !isOfferUser) {
+            throw new RuntimeException("You are not authorized to accept this match.");
+        }
+// 4. Mark acceptance from the user
+        if (isRequestUser) {
             match.setRequestAccepted(true);
-        } else if (match.getOfferPost().getUser().getId().equals(userId)) {
+        } else if (isOfferUser) {
             match.setOfferAccepted(true);
-        } else {
-            throw new RuntimeException("You are not authorized for this action!");
         }
 
-        // If both accepted: finalize the match
+        // 5. If both parties have accepted, finalize the match
         if (match.isRequestAccepted() && match.isOfferAccepted()) {
+
+            // Mark as accepted before finalizing
             match.setStatus("accepted");
 
-            // Update quantities in posts
+            // 6. Finalize the match: update item quantities, post statuses, and notify users
             finalizeMatch(match);
+
+            // 7. Reward points to the offer user, based on quantity matched
+            int quantityMatched = match.getQuantity();  // this reflects the quantity that was matched
+            User offerUser = match.getOfferPost().getUser();
+
+            userService.updateUserReputation(offerUser, quantityMatched);
+
+            // 8. Notify both users of the successful match (optional, if not already handled in finalizeMatch)
+            String message = String.format("Match for item '%s' completed! Quantity matched: %d",
+                    match.getItemName(), quantityMatched);
+
+            notificationService.createNotification(match.getRequestPost().getUser(), message, "match-completed");
+            notificationService.createNotification(offerUser, message, "match-completed");
         }
 
+        // 9. Save the updated match request and return it
         return matchRequestRepository.save(match);
     }
+
 
     @Transactional
     public MatchRequest rejectMatch(Long matchRequestId, Long userId) {
@@ -105,19 +141,21 @@ public class MatchRequestService {
 
         Item requestItem = requestPost.getItems().stream()
                 .filter(i -> i.getItemName().equalsIgnoreCase(match.getItemName()))
-                .findFirst().orElseThrow(() -> new RuntimeException("Request item not found"));
+                .findFirst().orElseThrow(() -> new RuntimeException("Request item not found."));
 
         Item offerItem = offerPost.getItems().stream()
                 .filter(i -> i.getItemName().equalsIgnoreCase(match.getItemName()))
-                .findFirst().orElseThrow(() -> new RuntimeException("Offer item not found"));
+                .findFirst().orElseThrow(() -> new RuntimeException("Offer item not found."));
 
         int quantityToMatch = match.getQuantity();
 
-        // Subtract quantities
+        if (quantityToMatch > offerItem.getQuantityAvailable()) {
+            throw new RuntimeException("Offer item quantity insufficient.");
+        }
+
         requestItem.setQuantityRequested(requestItem.getQuantityRequested() - quantityToMatch);
         offerItem.setQuantityAvailable(offerItem.getQuantityAvailable() - quantityToMatch);
 
-        // Mark post status as done if quantities exhausted
         if (requestItem.getQuantityRequested() <= 0) {
             requestPost.setStatus("done");
         }
@@ -129,14 +167,10 @@ public class MatchRequestService {
         postRepository.save(requestPost);
         postRepository.save(offerPost);
 
-        // Notify both users match is completed
-        String message = String.format("Match for item '%s' is completed! Quantity matched: %d", match.getItemName(), quantityToMatch);
-
-        notificationService.createNotification(requestPost.getUser(), message, "match-completed");
-        notificationService.createNotification(offerPost.getUser(), message, "match-completed");
-
-        // Optional: Mark MatchRequest as completed
         match.setStatus("completed");
         matchRequestRepository.save(match);
     }
+
+
+
 }

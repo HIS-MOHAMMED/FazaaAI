@@ -1,5 +1,6 @@
 package com.example.FazaaAI.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -37,6 +38,7 @@ public class Crisis {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
+    //@JsonIgnore
     private User user;
 
     @PrePersist

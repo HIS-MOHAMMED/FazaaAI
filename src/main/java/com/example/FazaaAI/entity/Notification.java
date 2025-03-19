@@ -1,5 +1,6 @@
 package com.example.FazaaAI.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import com.fasterxml.jackson.annotation.JsonBackReference;
@@ -33,6 +34,7 @@ public class Notification {
     // NEW: Link this notification to a crisis (for safety campaign)
     @ManyToOne
     @JoinColumn(name = "crisis_id")
+    //@JsonIgnore
     private Crisis crisis;
 
     // Getters and setters remain unchanged

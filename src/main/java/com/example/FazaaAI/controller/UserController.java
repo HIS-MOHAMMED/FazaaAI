@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -74,5 +75,37 @@ public class UserController {
             errors.put(error.getField(), error.getDefaultMessage());
         }
         return ResponseEntity.badRequest().body(errors);
+    }
+    @GetMapping("/leaderboard")
+    public ResponseEntity<List<User>> getLeaderboard(@RequestParam(defaultValue = "1") int limit) {
+        List<User> topHelpers = userService.getTopHelpers(limit);
+        return ResponseEntity.ok(topHelpers);
+    }
+    @GetMapping("/profile/{userId}")
+    public ResponseEntity<Map<String, Object>> getUserProfile(@PathVariable Long userId) {
+        User user = userService.getUserById(userId);
+
+        int reputationPoints = user.getReputationPoints();
+        String rank = user.getRank();
+
+        // Calculate points to next rank
+        int pointsToNextRank = 0;
+        if (reputationPoints < 50) {
+            pointsToNextRank = 50 - reputationPoints;
+        } else if (reputationPoints < 200) {
+            pointsToNextRank = 200 - reputationPoints;
+        } else if (reputationPoints < 500) {
+            pointsToNextRank = 500 - reputationPoints;
+        } else if (reputationPoints < 1000) {
+            pointsToNextRank = 1000 - reputationPoints;
+        }
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("username", user.getUsername());
+        response.put("reputationPoints", reputationPoints);
+        response.put("rank", rank);
+        response.put("pointsToNextRank", pointsToNextRank);
+
+        return ResponseEntity.ok(response);
     }
 }

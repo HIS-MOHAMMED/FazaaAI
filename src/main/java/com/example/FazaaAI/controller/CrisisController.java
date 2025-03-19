@@ -1,5 +1,6 @@
 package com.example.FazaaAI.controller;
 
+import com.example.FazaaAI.dto.CrisisDTO;
 import com.example.FazaaAI.entity.Crisis;
 import com.example.FazaaAI.entity.User;
 import com.example.FazaaAI.service.CrisisService;
@@ -40,8 +41,13 @@ public class CrisisController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<Crisis>> getAllCrisis() {
+    public ResponseEntity<List<CrisisDTO>> getAllCrisis() {
         List<Crisis> crisisList = crisisService.getAllCrisis();
-        return ResponseEntity.ok(crisisList);
+
+        List<CrisisDTO> dtoList = crisisList.stream()
+                .map(crisisService::convertToDTO)
+                .toList();
+
+        return ResponseEntity.ok(dtoList);
     }
 }
