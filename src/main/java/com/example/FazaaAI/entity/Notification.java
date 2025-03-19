@@ -2,7 +2,7 @@ package com.example.FazaaAI.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import com.fasterxml.jackson.annotation.JsonBackReference; // Changed to Back
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
 @Data
@@ -16,20 +16,43 @@ public class Notification {
     private Long id;
 
     private String message;
-
     private String type;
-
     private boolean isRead = false;
+
+    private String safetyStatus; // "pending", "safe", "not_safe"
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    @JsonBackReference("user-notifications") // Back-reference to the user
+    @JsonBackReference("user-notifications")
     private User user;
 
     @ManyToOne
     @JoinColumn(name = "match_request_id")
     private MatchRequest matchRequest;
+
+    // NEW: Link this notification to a crisis (for safety campaign)
+    @ManyToOne
+    @JoinColumn(name = "crisis_id")
+    private Crisis crisis;
+
     // Getters and setters remain unchanged
+
+
+    public String getSafetyStatus() {
+        return safetyStatus;
+    }
+
+    public void setSafetyStatus(String safetyStatus) {
+        this.safetyStatus = safetyStatus;
+    }
+
+    public Crisis getCrisis() {
+        return crisis;
+    }
+
+    public void setCrisis(Crisis crisis) {
+        this.crisis = crisis;
+    }
 
     public Long getId() {
         return id;

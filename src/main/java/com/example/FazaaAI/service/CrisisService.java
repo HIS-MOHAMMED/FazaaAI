@@ -3,30 +3,31 @@ package com.example.FazaaAI.service;
 import com.example.FazaaAI.entity.Crisis;
 import com.example.FazaaAI.entity.User;
 import com.example.FazaaAI.repository.CrisisRepository;
+import com.example.FazaaAI.repository.UserRepository;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 public class CrisisService {
 
     @Autowired
-    private CrisisRepository crisisRepository;
-
-    @Autowired
     private AIService aiService;
 
     @Autowired
-    private UserService userService;
+    private CrisisRepository crisisRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     private NotificationService notificationService;
 
-    // ✅ Create crisis with AI classification, guide, and notifications
-    public Crisis createCrisis(Crisis crisis) {
-        // AI prompt to classify and generate survival guide
+    public Crisis processCrisisReport(Crisis crisis) {
+
         String prompt = """
         You are an AI assistant helping classify crisis reports and generate survival guides.
         
@@ -34,19 +35,18 @@ public class CrisisService {
         
         "%s"
         
-        Respond ONLY with raw JSON:
+        ⚠️ Respond ONLY with raw JSON in this format:
         
         {
-          "type": "Flood",
-          "enhancedDescription": "A massive flood has submerged parts of the city.",
-          "survivalGuide": "1. Move to higher ground immediately. 2. Avoid floodwaters. 3. Stay informed via radio..."
+            "type": "Flood",
+            "enhancedDescription": "A massive flood has submerged parts of the city.",
+            "survivalGuide": "1. Move to higher ground immediately. 2. Avoid floodwaters. 3. Stay informed via radio...",
+            "safetyCheckDurationDays": 3
         }
         """.formatted(crisis.getUserDescription());
 
         String aiResponse = aiService.generateContent(prompt);
-
-        // Clean response if needed
-        aiResponse = aiResponse.replace("```json", "").replace("```", "").trim();
+        aiResponse = aiResponse.replace("json", "").replace("```", "").trim();
 
         JSONObject json = new JSONObject(aiResponse);
 
@@ -54,34 +54,34 @@ public class CrisisService {
         crisis.setEnhancedDescription(json.getString("enhancedDescription"));
         crisis.setSurvivalGuide(json.getString("survivalGuide"));
 
-        // Save the crisis
+        int durationDays = json.getInt("safetyCheckDurationDays");
+        crisis.setSafetyCheckDurationDays(durationDays);
+
+        crisis.setStartDate(LocalDateTime.now());
+        crisis.setEndDate(crisis.getStartDate().plusDays(durationDays));
+
         Crisis savedCrisis = crisisRepository.save(crisis);
 
-        // Notify all users in the same city (excluding the creator)
-        List<User> usersInCity = userService.findUsersByCity(crisis.getCity());
-        usersInCity.remove(crisis.getUser()); // Don’t notify the creator
-        if (!usersInCity.isEmpty()) {
-            String message = "A new crisis has been reported in " + crisis.getCity() + ": " + crisis.getEnhancedDescription();
-            notificationService.notifyUsers(usersInCity, message, "crisis");
-        }
+        notifyUsersInCity(savedCrisis);
 
         return savedCrisis;
     }
 
-    // ✅ Get all crisis posts
+    private void notifyUsersInCity(Crisis crisis) {
+        List<User> usersInCity = userRepository.findByAddressContainingIgnoreCase(crisis.getCity());
+
+        for (User user : usersInCity) {
+            String message = String.format("Crisis Alert: %s. Are you safe today?", crisis.getEnhancedDescription());
+            notificationService.createSafetyNotification(user, crisis, message);
+        }
+    }
+
     public List<Crisis> getAllCrisis() {
         return crisisRepository.findAll();
     }
 
-    // ✅ Get specific crisis post by ID
     public Crisis getCrisisById(Long id) {
         return crisisRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Crisis not found with ID: " + id));
-    }
-
-    // ✅ Update crisis status (optional)
-    public Crisis updateCrisisStatus(Long id, String status) {
-        Crisis crisis = getCrisisById(id);
-        return crisisRepository.save(crisis);
     }
 }

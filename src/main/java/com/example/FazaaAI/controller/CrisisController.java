@@ -21,9 +21,9 @@ public class CrisisController {
     @Autowired
     private UserService userService;
 
-    // ✅ Create a Crisis post (AI classifies type, enhancedDescription, survivalGuide)
     @PostMapping("/create")
     public ResponseEntity<Crisis> createCrisis(@RequestBody Crisis crisis, HttpServletRequest request) {
+
         Long userId = (Long) request.getAttribute("userId");
 
         if (userId == null) {
@@ -31,24 +31,17 @@ public class CrisisController {
         }
 
         User user = userService.getUserById(userId);
-        crisis.setUser(user);
 
-        Crisis createdCrisis = crisisService.createCrisis(crisis);
+        crisis.setUser(user); // ✅ Attach the user before processing
+
+        Crisis createdCrisis = crisisService.processCrisisReport(crisis);
 
         return ResponseEntity.ok(createdCrisis);
     }
 
-    // ✅ Get all crisis posts (optional)
     @GetMapping("/all")
     public ResponseEntity<List<Crisis>> getAllCrisis() {
         List<Crisis> crisisList = crisisService.getAllCrisis();
         return ResponseEntity.ok(crisisList);
-    }
-
-    // ✅ Get survival guide for a specific crisis post
-    @GetMapping("/{id}/survival-guide")
-    public ResponseEntity<String> getSurvivalGuide(@PathVariable Long id) {
-        Crisis crisis = crisisService.getCrisisById(id);
-        return ResponseEntity.ok(crisis.getSurvivalGuide());
     }
 }

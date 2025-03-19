@@ -1,5 +1,6 @@
 package com.example.FazaaAI.controller;
 
+import com.example.FazaaAI.dto.PostResponseDTO;
 import com.example.FazaaAI.entity.Post;
 import com.example.FazaaAI.entity.User;
 import com.example.FazaaAI.service.PostService;
@@ -52,12 +53,33 @@ public class PostController {
 
     // ✅ Get all posts
     @GetMapping("/all")
-    public ResponseEntity<List<Post>> getAllPosts(HttpServletRequest request) {
+    public ResponseEntity<List<PostResponseDTO>> getAllPosts(HttpServletRequest request) {
 
         Long userId = (Long) request.getAttribute("userId");
 
         List<Post> posts = postService.getAllPosts();
 
-        return ResponseEntity.ok(posts);
+        // Convert each Post to PostResponseDTO
+        List<PostResponseDTO> postDTOs = posts.stream().map(post -> {
+            PostResponseDTO dto = new PostResponseDTO();
+
+            dto.setId(post.getId());
+            dto.setUserDescription(post.getUserDescription());
+            dto.setEnhancedDescription(post.getEnhancedDescription());
+            dto.setStatus(post.getStatus());
+            dto.setType(post.getType());
+            dto.setCity(post.getCity());
+            dto.setPhoneNumber(post.getPhoneNumber());
+
+            // Extract user details safely
+            if (post.getUser() != null) {
+                dto.setUserId(post.getUser().getId());
+                dto.setUsername(post.getUser().getUsername()); // Optional if you want to display it
+            }
+
+            return dto;
+        }).toList();
+
+        return ResponseEntity.ok(postDTOs);
     }
 }

@@ -28,7 +28,7 @@ public class Post {
     private String enhancedDescription;
 
     private String status;
-    private String urgency;
+
     private String type;
 
     private String city;
@@ -83,14 +83,6 @@ public class Post {
 
     public void setStatus(String status) {
         this.status = status;
-    }
-
-    public String getUrgency() {
-        return urgency;
-    }
-
-    public void setUrgency(String urgency) {
-        this.urgency = urgency;
     }
 
     public String getType() {
