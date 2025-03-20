@@ -20,8 +20,7 @@ Frontend Developers: Israa Esaa  & Fatima Khafaji
 
 
 ### 🎬 Demo Video
-[ Watch the FazaaAI Demo Video](https://www.youtube.com/watch?v=YkjNhx3OrzY)
-
+[ Watch the FazaaAI Demo Video](https://drive.google.com/file/d/1hqRpXgLWJMOTw4JG8Q5pEz61TaTD4zvO/view?usp=drivesdk)
 
 ### Database ER Diagram
 ![Database ER](https://github.com/HIS-MOHAMMED/FazaaAI-Backend/blob/main/Database%20ER%20Diagram.png)
