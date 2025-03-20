@@ -1,5 +1,6 @@
 package com.example.FazaaAI.service;
 
+import com.example.FazaaAI.dto.TopHelperDTO;
 import com.example.FazaaAI.entity.User;
 import com.example.FazaaAI.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,11 +64,17 @@ public class UserService {
 
         userRepository.save(user);
     }
-    public List<User> getTopHelpers() {
+    public List<TopHelperDTO> getTopHelpers() {
         int limit = 10;  // Top 10 helpers
+
         return userRepository.findAll(
-                PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "reputationPoints"))
-        ).getContent();
+                        PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "reputationPoints"))
+                ).getContent().stream()
+                .map(user -> new TopHelperDTO(
+                        user.getUsername(),
+                        user.getReputationPoints(),
+                        user.getRank()
+                )).toList();
     }
 
 

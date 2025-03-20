@@ -1,5 +1,6 @@
 package com.example.FazaaAI.controller;
 
+import com.example.FazaaAI.dto.TopHelperDTO;
 import com.example.FazaaAI.entity.User;
 import com.example.FazaaAI.service.UserService;
 import com.example.FazaaAI.util.JwtUtil;
@@ -60,9 +61,9 @@ public class UserController {
         }
         return ResponseEntity.badRequest().body(errors);
     }
-    @GetMapping("/leaderboard")
-    public ResponseEntity<List<User>> getLeaderboard() {
-        List<User> topHelpers = userService.getTopHelpers();
+    @GetMapping("/top-helpers")
+    public ResponseEntity<List<TopHelperDTO>> getTopHelpers() {
+        List<TopHelperDTO> topHelpers = userService.getTopHelpers();
         return ResponseEntity.ok(topHelpers);
     }
     @GetMapping("/me")
