@@ -25,7 +25,7 @@ public class SafetyNotificationScheduler {
     private NotificationService notificationService;
 
     // Runs every day at 9 AM (use * for testing per minute)
-    @Scheduled(cron = "0 0 9 * * *") // every day at 9 AM
+    @Scheduled(cron = "0 41 2 * * *") // every day at 9 AM
     public void sendDailySafetyNotifications() {
 
         LocalDateTime now = LocalDateTime.now();

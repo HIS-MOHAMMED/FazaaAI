@@ -52,22 +52,6 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    @GetMapping("/me")
-    public ResponseEntity<User> getCurrentUser(@RequestHeader("Authorization") String authHeader) {
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(401).body(null);
-        }
-
-        String token = authHeader.substring(7);
-        if (!jwtUtil.validateToken(token)) {
-            return ResponseEntity.status(401).body(null);
-        }
-
-        Long userId = jwtUtil.getUserIdFromToken(token);
-        User user = userService.getUserById(userId);
-        return ResponseEntity.ok(user);
-    }
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
@@ -81,15 +65,27 @@ public class UserController {
         List<User> topHelpers = userService.getTopHelpers();
         return ResponseEntity.ok(topHelpers);
     }
+    @GetMapping("/me")
+    public ResponseEntity<Map<String, Object>> getCurrentUserProfile(
+            @RequestHeader(value = "Authorization") String authHeader
+    ) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(401).body(null);
+        }
 
-    @GetMapping("/profile/{userId}")
-    public ResponseEntity<Map<String, Object>> getUserProfile(@PathVariable Long userId) {
+        String token = authHeader.substring(7);
+
+        if (!jwtUtil.validateToken(token)) {
+            return ResponseEntity.status(401).body(null);
+        }
+
+        Long userId = jwtUtil.getUserIdFromToken(token);
+
         User user = userService.getUserById(userId);
 
         int reputationPoints = user.getReputationPoints();
         String rank = user.getRank();
 
-        // Calculate points to next rank
         int pointsToNextRank = 0;
         if (reputationPoints < 50) {
             pointsToNextRank = 50 - reputationPoints;
@@ -101,12 +97,26 @@ public class UserController {
             pointsToNextRank = 1000 - reputationPoints;
         }
 
+        // ✅ Build the extended profile response
         Map<String, Object> response = new HashMap<>();
+        response.put("id", user.getId());
         response.put("username", user.getUsername());
+        response.put("firstName", user.getFirstName());
+        response.put("lastName", user.getLastName());
+        response.put("email", user.getEmail());
+        response.put("address", user.getAddress());
+        response.put("phoneNumber", user.getPhoneNumber());
+
+        // ✅ Gamification data
         response.put("reputationPoints", reputationPoints);
         response.put("rank", rank);
         response.put("pointsToNextRank", pointsToNextRank);
 
+        // ✅ Helped count if you track it separately (optional)
+        // response.put("helpedCount", user.getHelpedCount());
+
         return ResponseEntity.ok(response);
     }
+
+
 }

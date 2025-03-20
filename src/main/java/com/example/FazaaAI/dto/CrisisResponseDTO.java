@@ -1,6 +1,5 @@
 package com.example.FazaaAI.dto;
 
-import com.example.FazaaAI.entity.Crisis;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -8,19 +7,19 @@ import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 //@AllArgsConstructor
-public class CrisisDTO {
-    public CrisisDTO(String username, Long userId, LocalDateTime endDate, LocalDateTime startDate, int safetyCheckDurationDays, String survivalGuide, String city, String type, String enhancedDescription, String userDescription, Long id) {
-        this.username = username;
-        this.userId = userId;
-        this.endDate = endDate;
-        this.startDate = startDate;
-        this.safetyCheckDurationDays = safetyCheckDurationDays;
-        this.survivalGuide = survivalGuide;
-        this.city = city;
+public class CrisisResponseDTO {
+    public CrisisResponseDTO(String username, Long userId, LocalDateTime endDate, LocalDateTime startDate, int safetyCheckDurationDays, String survivalGuide, String city, String type, String enhancedDescription, String userDescription, Long id) {
+        this.username = username;//
+        this.userId = userId;//
+        this.endDate = endDate;//
+        this.startDate = startDate;//
+        this.safetyCheckDurationDays = safetyCheckDurationDays;//
+        this.survivalGuide = survivalGuide;//
+        this.city = city;//
         this.type = type;
-        this.enhancedDescription = enhancedDescription;
-        this.userDescription = userDescription;
-        this.id = id;
+        this.enhancedDescription = enhancedDescription;//
+        this.userDescription = userDescription;//
+        this.id = id;//
     }
 
     private Long id;
@@ -36,10 +35,10 @@ public class CrisisDTO {
 
     private Long userId;        // ID of the user who created it
     private String username;    // Username of the creator
-    public CrisisDTO(Long id, String userDescription, String enhancedDescription, String city,
-                     String survivalGuide, String type, int safetyCheckDurationDays,
-                     LocalDateTime startDate, LocalDateTime endDate,
-                     Long userId, String username) {
+    public CrisisResponseDTO(Long id, String userDescription, String enhancedDescription, String city,
+                             String survivalGuide, String type, int safetyCheckDurationDays,
+                             LocalDateTime startDate, LocalDateTime endDate,
+                             Long userId, String username) {
         this.id = id;
         this.userDescription = userDescription;
         this.enhancedDescription = enhancedDescription;

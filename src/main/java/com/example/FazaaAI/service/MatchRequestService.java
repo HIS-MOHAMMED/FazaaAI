@@ -86,6 +86,7 @@ public class MatchRequestService {
 
             // Mark as accepted before finalizing
             match.setStatus("accepted");
+            match.setDeleted(true);
 
             // 6. Finalize the match: update item quantities, post statuses, and notify users
             finalizeMatch(match);

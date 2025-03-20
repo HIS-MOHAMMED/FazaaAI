@@ -1,6 +1,6 @@
 package com.example.FazaaAI.controller;
 
-import com.example.FazaaAI.dto.CrisisDTO;
+import com.example.FazaaAI.dto.CrisisResponseDTO;
 import com.example.FazaaAI.entity.Crisis;
 import com.example.FazaaAI.entity.User;
 import com.example.FazaaAI.service.CrisisService;
@@ -23,28 +23,39 @@ public class CrisisController {
     private UserService userService;
 
     @PostMapping("/create")
-    public ResponseEntity<Crisis> createCrisis(@RequestBody Crisis crisis, HttpServletRequest request) {
-
+    public ResponseEntity<CrisisResponseDTO> createCrisis(@RequestBody Crisis crisis, HttpServletRequest request) {
         Long userId = (Long) request.getAttribute("userId");
 
         if (userId == null) {
-            return ResponseEntity.status(401).build(); // Unauthorized
+            return ResponseEntity.status(401).build();
         }
 
         User user = userService.getUserById(userId);
+        crisis.setUser(user);
 
-        crisis.setUser(user); // ✅ Attach the user before processing
+        Crisis savedCrisis = crisisService.processCrisisReport(crisis);
 
-        Crisis createdCrisis = crisisService.processCrisisReport(crisis);
+        CrisisResponseDTO dto = new CrisisResponseDTO(
+                savedCrisis.getUser().getUsername(),
+                savedCrisis.getId(),
+                savedCrisis.getEndDate(),
+                savedCrisis.getStartDate(),
+                savedCrisis.getSafetyCheckDurationDays(),
+                savedCrisis.getSurvivalGuide(),
+                savedCrisis.getCity(),
+                savedCrisis.getType(),
+                savedCrisis.getEnhancedDescription(),
+                savedCrisis.getUserDescription(),
+                savedCrisis.getUser().getId());
 
-        return ResponseEntity.ok(createdCrisis);
+        return ResponseEntity.ok(dto);
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<CrisisDTO>> getAllCrisis() {
+    public ResponseEntity<List<CrisisResponseDTO>> getAllCrisis() {
         List<Crisis> crisisList = crisisService.getAllCrisis();
 
-        List<CrisisDTO> dtoList = crisisList.stream()
+        List<CrisisResponseDTO> dtoList = crisisList.stream()
                 .map(crisisService::convertToDTO)
                 .toList();
 

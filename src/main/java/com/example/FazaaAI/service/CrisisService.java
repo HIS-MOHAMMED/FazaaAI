@@ -1,6 +1,6 @@
 package com.example.FazaaAI.service;
 
-import com.example.FazaaAI.dto.CrisisDTO;
+import com.example.FazaaAI.dto.CrisisResponseDTO;
 import com.example.FazaaAI.entity.Crisis;
 import com.example.FazaaAI.entity.User;
 import com.example.FazaaAI.repository.CrisisRepository;
@@ -69,8 +69,8 @@ public class CrisisService {
         return savedCrisis;
     }
 
-    public CrisisDTO convertToDTO(Crisis crisis) {
-        return new CrisisDTO(
+    public CrisisResponseDTO convertToDTO(Crisis crisis) {
+        return new CrisisResponseDTO(
                 crisis.getId(),
                 crisis.getUserDescription(),
                 crisis.getEnhancedDescription(),

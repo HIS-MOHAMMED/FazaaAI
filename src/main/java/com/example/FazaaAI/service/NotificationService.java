@@ -47,7 +47,7 @@ public class NotificationService {
         notification.setType("safety_check"); // Convention: use underscore for type
         notification.setRead(false);
 
-        // THIS WAS MISSING!
+        notification.setCrisis(crisis);
         notification.setSafetyStatus("pending"); // Start with "pending"
 
         notificationRepository.save(notification);
